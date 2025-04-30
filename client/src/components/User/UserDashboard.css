@@ -1,0 +1,75 @@
+.user-dashboard {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.dashboard-content {
+  flex: 1;
+  padding: 30px;
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.ride-section,
+.drivers-section {
+  margin-bottom: 30px;
+}
+
+.ride-section h2,
+.drivers-section h2 {
+  color: #2d3748;
+  margin-bottom: 20px;
+  font-size: 24px;
+}
+
+.booking-actions {
+  display: flex;
+  justify-content: center;
+  margin-top: 20px;
+}
+
+.booking-confirmed {
+  text-align: center;
+  padding: 40px;
+}
+
+.confirmation-message {
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.confirmation-message h2 {
+  color: #38b2ac;
+  margin-bottom: 20px;
+  font-size: 28px;
+}
+
+.confirmation-message p {
+  margin-bottom: 15px;
+  font-size: 18px;
+  color: #4a5568;
+}
+
+.confirmation-message button {
+  margin-top: 20px;
+}
+
+@media (max-width: 768px) {
+  .dashboard-content {
+    padding: 20px;
+  }
+
+  .booking-confirmed {
+    padding: 20px;
+  }
+
+  .confirmation-message h2 {
+    font-size: 24px;
+  }
+
+  .confirmation-message p {
+    font-size: 16px;
+  }
+}

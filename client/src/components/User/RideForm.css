@@ -1,0 +1,27 @@
+.ride-form {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.form-group label {
+  font-weight: 600;
+  margin-bottom: 5px;
+  color: #4a5568;
+}
+
+.find-drivers-btn {
+  margin-top: 10px;
+  align-self: flex-start;
+}
+
+@media (max-width: 768px) {
+  .find-drivers-btn {
+    align-self: stretch;
+  }
+}
