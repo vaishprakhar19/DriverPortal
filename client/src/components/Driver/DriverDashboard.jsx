@@ -5,7 +5,7 @@ import { AppContext } from "../../AppContext";
 import "./DriverDashboard.css"; // You'll need to create this CSS file
 
 const DriverDashboard = ({ onLogout }) => {
-    const { driverId } = useContext(AppContext);
+    const { userId, driverId } = useContext(AppContext);
     const [rides, setRides] = useState([]);
     const [activeRides, setActiveRides] = useState([]);
     const [completedRides, setCompletedRides] = useState([]);
@@ -26,12 +26,12 @@ const DriverDashboard = ({ onLogout }) => {
                 console.error("Error fetching rides:", error);
             }
         };
-        
+
         fetchRides();
     }, [driverId]);
     console.log(rides);
-    console.log(driverId);
-    
+    console.log(userId);
+
     const acceptRide = async (ride) => {
         try {
             await axios.post(`http://localhost:5000/api/rides/${ride.id}/accept`);
@@ -52,9 +52,10 @@ const DriverDashboard = ({ onLogout }) => {
         }
     };
 
-    const rejectRide = async (rideId) => {
+    const rejectRide = async (ride) => {
         try {
-            await axios.delete(`http://localhost:5000/api/rides/${rideId}/reject`);
+            await axios.post(`http://localhost:5000/api/rides/${ride.id}/reject`);
+            setActiveRides(activeRides.filter((r) => r.id !== ride.id));
         } catch (error) {
             console.error("Error rejecting ride:", error);
         }
@@ -94,7 +95,7 @@ const DriverDashboard = ({ onLogout }) => {
                                         <button className="btn-success" onClick={() => acceptRide(ride)}>
                                             Accept
                                         </button>
-                                        <button className="btn-danger" onClick={() => rejectRide(ride.id)}>
+                                        <button className="btn-danger" onClick={() => rejectRide(ride)}>
                                             Reject
                                         </button>
                                     </div>

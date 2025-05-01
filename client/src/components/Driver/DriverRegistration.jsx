@@ -1,6 +1,7 @@
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
 import axios from "axios";
 import "./DriverRegistration.css";
+import { AppContext } from "../../AppContext";
 
 const DriverRegistration = () => {
   const [formData, setFormData] = useState({
@@ -13,16 +14,17 @@ const DriverRegistration = () => {
 
   const [successMessage, setSuccessMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
+  const { userId } = useContext(AppContext);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
   };
-
+  console.log(userId, "in driverreg");
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await axios.post("http://localhost:5000/api/drivers", formData);
+      const response = await axios.post("http://localhost:5000/api/drivers", { ...formData, driverId: userId });
       setSuccessMessage("Driver registered successfully!");
       setErrorMessage("");
       setFormData({

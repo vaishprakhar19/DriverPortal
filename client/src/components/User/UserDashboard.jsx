@@ -6,7 +6,7 @@ import DriverList from "./DriverList";
 import "./UserDashboard.css";
 
 const UserDashboard = ({ onLogout }) => {
-  const { userId } = useContext(AppContext);
+  const { userId, user } = useContext(AppContext);
   const [pickup, setPickup] = useState("");
   const [destination, setDestination] = useState("");
   const [showDrivers, setShowDrivers] = useState(false);
@@ -14,9 +14,14 @@ const UserDashboard = ({ onLogout }) => {
   const [bookingConfirmed, setBookingConfirmed] = useState(false);
   const [drivers, setDrivers] = useState([]);
   const [rides, setRides] = useState([]);
+  const [filteredRides, setFilteredRides] = useState([]); // New state for filtered rides
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [activeRide, setActiveRide] = useState(null);
+  const [driverPrices, setDriverPrices] = useState({}); // State for driver prices
+
+
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (userId) {
@@ -25,6 +30,21 @@ const UserDashboard = ({ onLogout }) => {
         .catch((err) => console.error("Error loading rides:", err));
     }
   }, [userId]);
+
+  useEffect(() => {
+    if (userId) {
+      setFilteredRides(rides.filter((ride) => ride.user_id === userId)); // Update filtered rides when rides or userId changes
+    }
+  }, [rides, userId]);
+
+  useEffect(() => {
+    // Generate random prices for each driver
+    const prices = {};
+    drivers.forEach((driver) => {
+      prices[driver.driver_id] = Math.floor(Math.random() * 100) + 70;
+    });
+    setDriverPrices(prices);
+  }, [drivers]);
 
   const loadRides = async () => {
     setLoading(true);
@@ -81,22 +101,22 @@ const UserDashboard = ({ onLogout }) => {
     setSelectedDriver(driver);
   };
 
+  console.log("New Ride:", selectedDriver);
   const confirmBooking = async () => {
-    console.log(selectedDriver,userId)
     if (!selectedDriver || !userId) return;
     setLoading(true);
     setError("");
 
-    const estimatedPrice = Math.floor(Math.random() * 300) + 10; // Example
+    const estimatedPrice = driverPrices[selectedDriver.driver_id]; // Use the calculated price
     const newRide = {
       pickup,
       destination,
       price: estimatedPrice,
-      driver: selectedDriver,
+      driverName: selectedDriver.driver_name,
       status: "active",
+      userName: user.displayName,
     };
-    console.log("New Ride:", newRide);
-    
+
     try {
       await fetch("http://localhost:5000/api/rides", {
         method: "POST",
@@ -108,13 +128,16 @@ const UserDashboard = ({ onLogout }) => {
           pickup,
           destination,
           price: estimatedPrice,
-          driverId: selectedDriver.id,
+          driverName: selectedDriver.driver_name,
+          userName: user.displayName,
           status: "active",
+          driverId: selectedDriver.driver_id,
         }),
       });
 
       setActiveRide(newRide);
-      setBookingConfirmed(true);
+      // setBookingConfirmed(true);
+      navigate("/payment", { state: { estimatedPrice } })
       setShowDrivers(false);
     } catch (err) {
       setError("Failed to book ride. Please try again.");
@@ -122,15 +145,6 @@ const UserDashboard = ({ onLogout }) => {
     } finally {
       setLoading(false);
     }
-  };
-
-  const newRide = () => {
-    setPickup("");
-    setDestination("");
-    setShowDrivers(false);
-    setSelectedDriver(null);
-    setBookingConfirmed(false);
-    setActiveRide(null);
   };
 
   return (
@@ -144,8 +158,9 @@ const UserDashboard = ({ onLogout }) => {
 
       <div className="dashboard-content">
         {error && <div className="error-message">{error}</div>}
-
         {activeRide ? (
+          <>
+          <button className="btn-danger">Book Another</button>
           <div className="active-ride-section card">
             <h2>Your Active Ride</h2>
             <div className="ride-details">
@@ -161,16 +176,15 @@ const UserDashboard = ({ onLogout }) => {
               <p>
                 <strong>Price:</strong> ${activeRide.price}
               </p>
-              {activeRide.driver && (
-                <p>
-                  <strong>Driver:</strong> {activeRide.driver.name}
-                </p>
-              )}
+              <p>
+                <strong>Driver:</strong> {activeRide.driverName}
+              </p>
             </div>
           </div>
+          </>
         ) : (
           <>
-            {!bookingConfirmed ? (
+            {!bookingConfirmed && (
               <>
                 <div className="ride-section">
                   <h2>Book a Ride</h2>
@@ -188,9 +202,13 @@ const UserDashboard = ({ onLogout }) => {
                           drivers={drivers}
                           onSelect={handleDriverSelect}
                           selectedDriver={selectedDriver}
+                          driverPrices={driverPrices} // Pass driver prices to DriverList
                         />
                         {selectedDriver && (
                           <div className="booking-actions">
+                            <p>
+                              <strong>Estimated Fare:</strong> ₹{driverPrices[selectedDriver.driver_id]}
+                            </p>
                             <button
                               className="btn-success"
                               onClick={confirmBooking}
@@ -209,60 +227,41 @@ const UserDashboard = ({ onLogout }) => {
                   </div>
                 )}
               </>
-            ) : (
-              <div className="booking-confirmed card">
-                <div className="confirmation-message">
-                  <h2>Booking Confirmed!</h2>
-                  <p>
-                    Your ride from <strong>{pickup}</strong> to{" "}
-                    <strong>{destination}</strong> has been booked.
-                  </p>
-                  <p>
-                    Estimated fare: <strong>${activeRide?.price}</strong>
-                  </p>
-                  <p>We are finding a driver for you. Please wait...</p>
-                  <button className="btn-primary" onClick={newRide}>
-                    Book Another Ride
-                  </button>
-                </div>
-              </div>
             )}
           </>
         )}
 
         <div className="ride-history-section">
           <h2>Your Ride History</h2>
-          {loading && !rides.length > 0 ? (
+          {loading && !filteredRides.length > 0 ? (
             <p>Loading ride history...</p>
-          ) : rides.length > 0 ? (
+          ) : filteredRides.length > 0 ? (
             <div className="ride-history-list">
-              {rides
-                .filter((ride) => ride.user_id == userId) // Filter rides by user_id
-                .map((ride) => (
-                  <div key={ride.id} className="ride-history-item card"> {/* Updated key to use `id` */}
-                    <div className="ride-history-details">
-                      <p>
-                        <strong>From:</strong> {ride.pickup_address} {/* Updated field name */}
-                      </p>
-                      <p>
-                        <strong>To:</strong> {ride.destination_address} {/* Updated field name */}
-                      </p>
-                      <p>
-                        <strong>Price:</strong> ${ride.price}
-                      </p>
-                      <p>
-                        <strong>Status:</strong>{" "}
-                        <span className={`status-badge ${ride.status}`}>
-                          {ride.status}
-                        </span>
-                      </p>
-                      <p>
-                        <strong>Date:</strong>{" "}
-                        {new Date(ride.created_at).toLocaleString()} {/* Updated field name */}
-                      </p>
-                    </div>
+              {filteredRides.map((ride) => (
+                <div key={ride.id} className="ride-history-item card"> {/* Updated key to use `id` */}
+                  <div className="ride-history-details">
+                    <p>
+                      <strong>From:</strong> {ride.pickup_address} {/* Updated field name */}
+                    </p>
+                    <p>
+                      <strong>To:</strong> {ride.destination_address} {/* Updated field name */}
+                    </p>
+                    <p>
+                      <strong>Price:</strong> ₹{ride.price}
+                    </p>
+                    <p>
+                      <strong>Status:</strong>{" "}
+                      <span className={`status-badge ${ride.status}`}>
+                        {ride.status}
+                      </span>
+                    </p>
+                    <p>
+                      <strong>Date:</strong>{" "}
+                      {new Date(ride.created_at).toLocaleString()} {/* Updated field name */}
+                    </p>
                   </div>
-                ))}
+                </div>
+              ))}
             </div>
           ) : (
             <p className="no-history">You haven't taken any rides yet.</p>

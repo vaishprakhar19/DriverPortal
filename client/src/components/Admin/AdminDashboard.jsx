@@ -47,7 +47,7 @@ const AdminDashboard = ({ onLogout }) => {
                   {drivers.map((driver) => (
                     <tr key={driver.driver_id}>
                       {/* <td>{driver.driver_id}</td> */}
-                      <td>{driver.name}</td>
+                      <td>{driver.driver_name}</td>
                       <td>{driver.vehicleModel}</td>
                       <td>{driver.vehicleColor}</td>
                       <td>{driver.rating}</td>
@@ -62,39 +62,39 @@ const AdminDashboard = ({ onLogout }) => {
             </div>
           </div>
         );
-      // case "users":
-      // return (
-      //   <div className="admin-tab-content">
-      //     <h2>Manage Users</h2>
-      //     <div className="admin-table-container">
-      //       <table className="admin-table">
-      //         <thead>
-      //           <tr>
-      //             <th>ID</th>
-      //             <th>Name</th>
-      //             <th>Total Rides</th>
-      //             <th>Total Spent</th>
-      //             <th>Actions</th>
-      //           </tr>
-      //         </thead>
-      //         <tbody>
-      //           {users.map((user) => (
-      //             <tr key={user.id}>
-      //               <td>{user.id}</td>
-      //               <td>{user.name}</td>
-      //               <td>{user.rides}</td>
-      //               <td>${user.totalSpent}</td>
-      //               <td>
-      //                 <button className="btn-small btn-primary">View Details</button>
-      //                 <button className="btn-small btn-danger">Block</button>
-      //               </td>
-      //             </tr>
-      //           ))}
-      //         </tbody>
-      //       </table>
-      //     </div>
-      //   </div>
-      // );
+      case "users":
+      return (
+        <div className="admin-tab-content">
+          <h2>Manage Users</h2>
+          <div className="admin-table-container">
+            <table className="admin-table">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Name</th>
+                  <th>Total Rides</th>
+                  <th>Total Spent</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {users.map((user) => (
+                  <tr key={user.id}>
+                    <td>{user.id}</td>
+                    <td>{user.name}</td>
+                    <td>{user.rides}</td>
+                    <td>${user.totalSpent}</td>
+                    <td>
+                      <button className="btn-small btn-primary">View Details</button>
+                      <button className="btn-small btn-danger">Block</button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      );
       case "rides":
         return (
           <div className="admin-tab-content">
@@ -116,8 +116,8 @@ const AdminDashboard = ({ onLogout }) => {
                   {rides.map((ride) => (
                     <tr key={ride.id}>
                       <td>{ride.id}</td>
-                      <td>{ride.user}</td>
-                      <td>{ride.driver}</td>
+                      <td>{ride.user_name}</td>
+                      <td>{ride.driver_name}</td>
                       <td>{ride.pickup_address}</td>
                       <td>{ride.destination_address}</td>
                       <td>₹{ride.price}</td>
@@ -149,7 +149,7 @@ const AdminDashboard = ({ onLogout }) => {
               </div>
               <div className="stat-card card">
                 <h3>Total Revenue</h3>
-                <p className="stat-value">₹{rides.reduce((sum, ride) => sum + ride.price, 0)}</p>
+                <p className="stat-value">₹{rides.reduce((sum, ride) => sum + parseFloat(ride.price), 0)}</p>
                 <p className="stat-label">From {rides.length} rides</p>
               </div>
             </div>
