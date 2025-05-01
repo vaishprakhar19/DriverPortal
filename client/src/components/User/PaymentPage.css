@@ -1,0 +1,31 @@
+.payment-page {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background-color: #f7fafc;
+}
+
+.payment-card,
+.confirmation-message {
+  background-color: white;
+  padding: 30px;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  text-align: center;
+}
+
+.payment-card h2,
+.confirmation-message h2 {
+  color: #2d3748;
+  margin-bottom: 20px;
+}
+
+.payment-card p {
+  margin-bottom: 10px;
+  color: #4a5568;
+}
+
+.payment-card .btn-success {
+  margin-top: 20px;
+}

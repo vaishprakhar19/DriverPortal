@@ -1,5 +1,4 @@
-"use client"
-import "./Login.css"
+import "./Login.css";
 
 const Login = ({ onLogin }) => {
   return (
@@ -10,19 +9,13 @@ const Login = ({ onLogin }) => {
           <p>Select your role to continue</p>
         </div>
         <div className="login-buttons">
-          <button className="login-btn user-btn" onClick={() => onLogin("user")}>
-            Login as User
-          </button>
-          <button className="login-btn driver-btn" onClick={() => onLogin("driver")}>
-            Login as Driver
-          </button>
-          <button className="login-btn admin-btn" onClick={() => onLogin("admin")}>
-            Login as Admin
-          </button>
+          <button className="login-btn user-btn" onClick={() => onLogin("user")}>Login as User</button>
+          <button className="login-btn driver-btn" onClick={() => onLogin("driver")}>Login as Driver</button>
+          <button className="login-btn admin-btn" onClick={() => onLogin("admin")}>Login as Admin</button>
         </div>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default Login
+export default Login;

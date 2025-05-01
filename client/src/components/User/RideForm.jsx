@@ -1,9 +1,19 @@
-"use client"
-import "./RideForm.css"
+import React, { useState } from "react";
+import "./RideForm.css";
 
-const RideForm = ({ pickup, setPickup, destination, setDestination, onSubmit }) => {
+const RideForm = ({ onFindDrivers }) => {
+  const [pickup, setPickup] = useState("");
+  const [destination, setDestination] = useState("");
+
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    if (pickup && destination && onFindDrivers) {
+      onFindDrivers(pickup, destination);
+    }
+  };
+
   return (
-    <form className="ride-form card" onSubmit={onSubmit}>
+    <form className="ride-form card" onSubmit={handleSubmit}>
       <div className="form-group">
         <label htmlFor="pickup">Pickup Location</label>
         <input
@@ -32,7 +42,7 @@ const RideForm = ({ pickup, setPickup, destination, setDestination, onSubmit }) 
         Find Drivers
       </button>
     </form>
-  )
-}
+  );
+};
 
-export default RideForm
+export default RideForm;
