@@ -1,81 +1,62 @@
 // frontend/src/DriverDashboard.js
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import axios from "axios";
+import { AppContext } from "../../AppContext";
 import "./DriverDashboard.css"; // You'll need to create this CSS file
 
 const DriverDashboard = ({ onLogout }) => {
-    const [requests, setRequests] = useState([]);
+    const { driverId } = useContext(AppContext);
+    const [rides, setRides] = useState([]);
     const [activeRides, setActiveRides] = useState([]);
     const [completedRides, setCompletedRides] = useState([]);
+    const [inProgressRides, setInProgressRides] = useState([]);
 
     useEffect(() => {
-        const fetchRequests = async () => {
+        const fetchRides = async () => {
             try {
-                const response = await axios.get("http://localhost:3000/api/requests");
-                setRequests(response.data);
+                const response = await axios.get("http://localhost:5000/api/rides");
+                const ridesData = response.data;
+
+                // Filter rides based on status and driver_id
+                setRides(ridesData);
+                setActiveRides(ridesData.filter((ride) => ride.status === "active" && ride.driver_id === driverId));
+                setInProgressRides(ridesData.filter((ride) => ride.status === "in-progress" && ride.driver_id === driverId));
+                setCompletedRides(ridesData.filter((ride) => ride.status === "completed" && ride.driver_id === driverId));
             } catch (error) {
-                console.error("Error fetching ride requests:", error);
+                console.error("Error fetching rides:", error);
             }
         };
-
-        const fetchActiveRides = async () => {
-            try {
-                const response = await axios.get("http://localhost:3000/api/active-rides");
-                setActiveRides(response.data);
-            } catch (error) {
-                console.error("Error fetching active rides:", error);
-            }
-        };
-
-        const fetchCompletedRides = async () => {
-            try {
-                const response = await axios.get("http://localhost:3000/api/completed-rides");
-                setCompletedRides(response.data);
-            } catch (error) {
-                console.error("Error fetching completed rides:", error);
-            }
-        };
-
-        fetchRequests();
-        fetchActiveRides();
-        fetchCompletedRides();
-
-        // Set up interval to refresh data periodically (optional)
-        const intervalId = setInterval(() => {
-            fetchRequests();
-            fetchActiveRides();
-            fetchCompletedRides();
-        }, 5000); // Refresh every 5 seconds
-
-        return () => clearInterval(intervalId); // Clean up interval on unmount
-    }, []);
-
-    const acceptRequest = async (request) => {
+        
+        fetchRides();
+    }, [driverId]);
+    console.log(rides);
+    console.log(driverId);
+    
+    const acceptRide = async (ride) => {
         try {
-            await axios.post(`http://localhost:3000/api/requests/${request.id}/accept`);
-            setRequests(requests.filter((req) => req.id !== request.id));
-            setActiveRides([...activeRides, { ...request, status: "active" }]);
+            await axios.post(`http://localhost:5000/api/rides/${ride.id}/accept`);
+            setActiveRides(activeRides.filter((r) => r.id !== ride.id));
+            setInProgressRides([...inProgressRides, { ...ride, status: "in-progress" }]);
         } catch (error) {
-            console.error("Error accepting request:", error);
+            console.error("Error accepting ride:", error);
         }
     };
 
     const completeRide = async (ride) => {
         try {
-            await axios.post(`http://localhost:3000/api/rides/${ride.id}/complete`);
-            setActiveRides(activeRides.filter((r) => r.id !== ride.id));
+            await axios.post(`http://localhost:5000/api/rides/${ride.id}/complete`);
+            setInProgressRides(inProgressRides.filter((r) => r.id !== ride.id));
             setCompletedRides([...completedRides, { ...ride, status: "completed" }]);
         } catch (error) {
             console.error("Error completing ride:", error);
         }
     };
 
-    const rejectRequest = async (requestId) => {
+    const rejectRide = async (rideId) => {
         try {
-            await axios.delete(`http://localhost:3000/api/requests/${requestId}/reject`);
-            setRequests(requests.filter((req) => req.id !== requestId));
+            await axios.delete(`http://localhost:5000/api/rides/${rideId}/reject`);
         } catch (error) {
-            console.error("Error rejecting request:", error);
+            console.error("Error rejecting ride:", error);
         }
     };
 
@@ -91,29 +72,29 @@ const DriverDashboard = ({ onLogout }) => {
             <div className="dashboard-content">
                 <div className="dashboard-section">
                     <h2>New Ride Requests</h2>
-                    {requests.length > 0 ? (
+                    {activeRides.length > 0 ? (
                         <div className="request-list">
-                            {requests.map((request) => (
-                                <div key={request.id} className="request-card card">
+                            {activeRides.map((ride) => (
+                                <div key={ride.id} className="request-card card">
                                     <div className="request-details">
-                                        <h3>Request from {request.user}</h3>
+                                        <h3>Request from {ride.user_id}</h3>
                                         <div className="location-details">
                                             <p>
-                                                <strong>Pickup:</strong> {request.pickup}
+                                                <strong>Pickup:</strong> {ride.pickup}
                                             </p>
                                             <p>
-                                                <strong>Destination:</strong> {request.destination}
+                                                <strong>Destination:</strong> {ride.destination}
                                             </p>
                                         </div>
                                         <p className="request-price">
-                                            <strong>Fare:</strong> ${request.price}
+                                            <strong>Fare:</strong> ${ride.price}
                                         </p>
                                     </div>
                                     <div className="request-actions">
-                                        <button className="btn-success" onClick={() => acceptRequest(request)}>
+                                        <button className="btn-success" onClick={() => acceptRide(ride)}>
                                             Accept
                                         </button>
-                                        <button className="btn-danger" onClick={() => rejectRequest(request.id)}>
+                                        <button className="btn-danger" onClick={() => rejectRide(ride.id)}>
                                             Reject
                                         </button>
                                     </div>
@@ -127,9 +108,9 @@ const DriverDashboard = ({ onLogout }) => {
 
                 <div className="dashboard-section">
                     <h2>Active Rides</h2>
-                    {activeRides.length > 0 ? (
+                    {inProgressRides.length > 0 ? (
                         <div className="active-rides-list">
-                            {activeRides.map((ride) => (
+                            {inProgressRides.map((ride) => (
                                 <div key={ride.id} className="active-ride-card card">
                                     <div className="ride-details">
                                         <h3>Ride with {ride.user}</h3>

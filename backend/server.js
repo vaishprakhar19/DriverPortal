@@ -54,37 +54,24 @@ app.get('/api/drivers', (req, res) => {
     });
   });
 
-// Create a new booking
-// app.post('/api/bookings', (req, res) => {
-//     const { pickup, destination, driverId } = req.body;
-//     const query = 'INSERT INTO bookings (pickup, destination, driverId) VALUES (?, ?, ?)';
-//     db.query(query, [pickup, destination, driverId], (err) => {
-//         if (err) {
-//             console.error('Error creating booking:', err);
-//             res.status(500).send('Error creating booking');
-//         } else {
-//             res.send('Booking created successfully');
-//         }
-//     });
-// });
+// Add a new endpoint for driver registration
+app.post('/api/drivers', (req, res) => {
+    const { name, vehicleModel, vehicleColor, licensePlate, serviceArea } = req.body;
 
-// // Fetch all bookings
-// app.get('/api/bookings', (req, res) => {
-//     const query = 'SELECT * FROM bookings';
-//     db.query(query, (err, results) => {
-//         if (err) {
-//             console.error('Error fetching bookings:', err);
-//             res.status(500).send('Error fetching bookings');
-//         } else {
-//             res.json(results);
-//         }
-//     });
-// });
+    const query = `
+        INSERT INTO Drivers (name, vehicleModel, vehicleColor, licensePlate, serviceArea)
+        VALUES (?, ?, ?, ?, ?)
+    `;
 
-
-
-
-
+    db.query(query, [name, vehicleModel, vehicleColor, licensePlate, serviceArea], (err, result) => {
+        if (err) {
+            console.error('Error registering driver:', err);
+            res.status(500).json({ error: 'Failed to register driver' });
+        } else {
+            res.status(201).json({ message: 'Driver registered successfully', driverId: result.insertId });
+        }
+    });
+});
 
 
 //USER API ENDPOINTS
@@ -97,7 +84,7 @@ app.post("/api/rides", async (req, res) => {
             INSERT INTO rides (user_id, pickup_address, destination_address, price, driver_id, status)
             VALUES (?, ?, ?, ?, ?, ?)
         `;
-        const values = [userId, pickup, destination, price, driverId, "pending"]; // Status set to 'pending'
+        const values = [userId, pickup, destination, price, driverId, "active"];
 
         db.query(query, values, (err, result) => {
             if (err) {
@@ -112,23 +99,95 @@ app.post("/api/rides", async (req, res) => {
         res.status(500).json({ error: "Unexpected error occurred" });
     }
 });
-  
-  // Route to find available drivers
-  app.post("/api/rides/available-drivers", async (req, res) => {
-    const { pickup, destination } = req.body;
-    // In a real application, you would use more sophisticated logic
-    // involving location services and driver availability.
-    // This is a simplified example.
+
+// Fetch all rides
+app.get("/api/rides", async (req, res) => {
+  try {
+    const query = "SELECT * FROM rides";
+    db.query(query, (err, results) => {
+      if (err) {
+        console.error("Error fetching rides:", err);
+        return res.status(500).json({ error: "Failed to fetch rides" });
+      } else {
+        const formattedResults = results.map(ride => ({
+          ...ride,
+          user_id: String(ride.user_id), // Ensure user_id is a string
+        }));
+        res.json(formattedResults);
+      }
+    });
+  } catch (error) {
+    console.error("Unexpected error:", error);
+    res.status(500).json({ error: "Unexpected error occurred" });
+  }
+});
+
+// Accept a ride request
+app.post('/api/rides/:id/accept', async (req, res) => {
+    const rideId = req.params.id;
+
     try {
-      const availableDrivers = await db.query("SELECT id, name, vehicle_type FROM users WHERE is_driver = TRUE");
-      res.json(availableDrivers.rows);
+        const query = 'UPDATE rides SET status = ? WHERE id = ?';
+        const values = ['in-progress', rideId];
+
+        db.query(query, values, (err, result) => {
+            if (err) {
+                console.error('Error accepting ride request:', err);
+                res.status(500).json({ error: 'Failed to accept ride request' });
+            } else {
+                res.status(200).json({ message: 'Ride request accepted successfully' });
+            }
+        });
     } catch (error) {
-      console.error("Error fetching available drivers:", error);
-      res.status(500).json({ error: "Failed to find available drivers" });
+        console.error('Unexpected error:', error);
+        res.status(500).json({ error: 'Unexpected error occurred' });
     }
-  });
+});
 
+// Reject a ride request
+app.post('/api/rides/:id/reject', async (req, res) => {
+    const rideId = req.params.id;
 
+    try {
+        const query = 'UPDATE rides SET status = ? WHERE id = ?';
+        const values = ['rejected', rideId];
+
+        db.query(query, values, (err, result) => {
+            if (err) {
+                console.error('Error rejecting ride request:', err);
+                res.status(500).json({ error: 'Failed to reject ride request' });
+            } else {
+                res.status(200).json({ message: 'Ride request rejected successfully' });
+            }
+        });
+    } catch (error) {
+        console.error('Unexpected error:', error);
+        res.status(500).json({ error: 'Unexpected error occurred' });
+    }
+});
+
+// Complete a ride
+app.post('/api/rides/:id/complete', async (req, res) => {
+    const rideId = req.params.id;
+
+    try {
+        const query = 'UPDATE rides SET status = ? WHERE id = ?';
+        const values = ['completed', rideId];
+
+        db.query(query, values, (err, result) => {
+            if (err) {
+                console.error('Error completing ride:', err);
+                res.status(500).json({ error: 'Failed to complete ride' });
+            } else {
+                res.status(200).json({ message: 'Ride completed successfully' });
+            }
+        });
+    } catch (error) {
+        console.error('Unexpected error:', error);
+        res.status(500).json({ error: 'Unexpected error occurred' });
+    }
+});
+  
 //DRIVER API ENDPOINTS
 
 // Get all ride requests

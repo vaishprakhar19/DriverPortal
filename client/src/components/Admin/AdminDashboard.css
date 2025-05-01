@@ -159,7 +159,7 @@
 
 .status-badge.active {
   background-color: #c6f6d5;
-  color: #2f855a;
+  color: #2b6cb0;
 }
 
 .status-badge.inactive {
@@ -172,7 +172,7 @@
   color: #2f855a;
 }
 
-.status-badge.in-progress {
+/* .status-badge.in-progress {
   background-color: #bee3f8;
   color: #2b6cb0;
 }
@@ -180,7 +180,7 @@
 .status-badge.scheduled {
   background-color: #e9d8fd;
   color: #6b46c1;
-}
+} */
 
 .btn-small {
   padding: 6px 12px;

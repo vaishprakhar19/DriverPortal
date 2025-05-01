@@ -1,10 +1,12 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useContext } from "react";
 import { useNavigate } from "react-router-dom";
+import { AppContext } from "../../AppContext";
 import RideForm from "./RideForm";
 import DriverList from "./DriverList";
 import "./UserDashboard.css";
 
-const UserDashboard = ({onLogout}) => {
+const UserDashboard = ({ onLogout }) => {
+  const { userId } = useContext(AppContext);
   const [pickup, setPickup] = useState("");
   const [destination, setDestination] = useState("");
   const [showDrivers, setShowDrivers] = useState(false);
@@ -15,11 +17,12 @@ const UserDashboard = ({onLogout}) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [activeRide, setActiveRide] = useState(null);
-  const [userId, setUserId] = useState("123");
 
   useEffect(() => {
     if (userId) {
-      loadRides();
+      loadRides()
+        .then(() => console.log("Rides loaded successfully"))
+        .catch((err) => console.error("Error loading rides:", err));
     }
   }, [userId]);
 
@@ -27,17 +30,13 @@ const UserDashboard = ({onLogout}) => {
     setLoading(true);
     setError("");
     try {
-      const response = await fetch(`http://localhost:5000/api/users/${userId}/rides`);
+      const response = await fetch(`http://localhost:5000/api/rides`);
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
       const data = await response.json();
+      console.log("Loaded rides data:", data); // Log the loaded rides data
       setRides(data);
-
-    
-      if (active) {
-        setActiveRide(active);
-      }
     } catch (err) {
       console.error("Error loading rides:", err);
       setError("Failed to load ride history.");
@@ -47,7 +46,6 @@ const UserDashboard = ({onLogout}) => {
   };
 
   const handleFindDrivers = async (pickupLocation, destinationLocation) => {
-    console.log(pickupLocation, destinationLocation);
     setPickup(pickupLocation);
     setDestination(destinationLocation);
     setError("");
@@ -55,12 +53,12 @@ const UserDashboard = ({onLogout}) => {
     if (pickupLocation && destinationLocation) {
       setLoading(true);
       try {
-        const response = await fetch("http://localhost:5000/api/find-drivers", { // Changed the endpoint URL
+        const response = await fetch("http://localhost:5000/api/find-drivers", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({ pickup: pickupLocation, destination: destinationLocation }), // Sending pickup and destination in the body
+          body: JSON.stringify({ pickup: pickupLocation, destination: destinationLocation }),
         });
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
@@ -84,45 +82,45 @@ const UserDashboard = ({onLogout}) => {
   };
 
   const confirmBooking = async () => {
+    console.log(selectedDriver,userId)
     if (!selectedDriver || !userId) return;
-
     setLoading(true);
     setError("");
 
-    const estimatedPrice = Math.floor(Math.random() * 30) + 10; // Example
+    const estimatedPrice = Math.floor(Math.random() * 300) + 10; // Example
     const newRide = {
-        pickup,
-        destination,
-        price: estimatedPrice,
-        driver: selectedDriver,
-        status: "pending",
+      pickup,
+      destination,
+      price: estimatedPrice,
+      driver: selectedDriver,
+      status: "active",
     };
     console.log("New Ride:", newRide);
-
+    
     try {
-        // Simulate API call to create a new ride
-        await fetch("http://localhost:5000/api/rides", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-                userId,
-                pickup,
-                destination,
-                price: estimatedPrice,
-                driverId: selectedDriver.id,
-            }),
-        });
+      await fetch("http://localhost:5000/api/rides", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          userId,
+          pickup,
+          destination,
+          price: estimatedPrice,
+          driverId: selectedDriver.id,
+          status: "active",
+        }),
+      });
 
-        setActiveRide(newRide); // Set the active ride
-        setBookingConfirmed(true);
-        setShowDrivers(false);
+      setActiveRide(newRide);
+      setBookingConfirmed(true);
+      setShowDrivers(false);
     } catch (err) {
-        setError("Failed to book ride. Please try again.");
-        console.error("Error booking ride:", err);
+      setError("Failed to book ride. Please try again.");
+      console.error("Error booking ride:", err);
     } finally {
-        setLoading(false);
+      setLoading(false);
     }
   };
 
@@ -176,9 +174,7 @@ const UserDashboard = ({onLogout}) => {
               <>
                 <div className="ride-section">
                   <h2>Book a Ride</h2>
-                  <RideForm
-                    onFindDrivers={handleFindDrivers}
-                  />
+                  <RideForm onFindDrivers={handleFindDrivers} />
                 </div>
 
                 {showDrivers && (
@@ -195,14 +191,20 @@ const UserDashboard = ({onLogout}) => {
                         />
                         {selectedDriver && (
                           <div className="booking-actions">
-                            <button className="btn-success" onClick={confirmBooking} disabled={loading}>
+                            <button
+                              className="btn-success"
+                              onClick={confirmBooking}
+                              disabled={loading}
+                            >
                               {loading ? "Processing..." : "Confirm Booking"}
                             </button>
                           </div>
                         )}
                       </>
                     ) : (
-                      <p className="no-drivers">No drivers available for the specified locations.</p>
+                      <p className="no-drivers">
+                        No drivers available for the specified locations.
+                      </p>
                     )}
                   </div>
                 )}
@@ -212,7 +214,8 @@ const UserDashboard = ({onLogout}) => {
                 <div className="confirmation-message">
                   <h2>Booking Confirmed!</h2>
                   <p>
-                    Your ride from <strong>{pickup}</strong> to <strong>{destination}</strong> has been booked.
+                    Your ride from <strong>{pickup}</strong> to{" "}
+                    <strong>{destination}</strong> has been booked.
                   </p>
                   <p>
                     Estimated fare: <strong>${activeRide?.price}</strong>
@@ -227,34 +230,39 @@ const UserDashboard = ({onLogout}) => {
           </>
         )}
 
-        {/* Ride History Section */}
         <div className="ride-history-section">
           <h2>Your Ride History</h2>
           {loading && !rides.length > 0 ? (
             <p>Loading ride history...</p>
           ) : rides.length > 0 ? (
             <div className="ride-history-list">
-              {rides.map((ride) => (
-                <div key={ride._id} className="ride-history-item card">
-                  <div className="ride-history-details">
-                    <p>
-                      <strong>From:</strong> {ride.pickup?.address}
-                    </p>
-                    <p>
-                      <strong>To:</strong> {ride.destination?.address}
-                    </p>
-                    <p>
-                      <strong>Price:</strong> ${ride.price}
-                    </p>
-                    <p>
-                      <strong>Status:</strong> <span className={`status-badge ${ride.status}`}>{ride.status}</span>
-                    </p>
-                    <p>
-                      <strong>Date:</strong> {new Date(ride.createdAt).toLocaleString()}
-                    </p>
+              {rides
+                .filter((ride) => ride.user_id == userId) // Filter rides by user_id
+                .map((ride) => (
+                  <div key={ride.id} className="ride-history-item card"> {/* Updated key to use `id` */}
+                    <div className="ride-history-details">
+                      <p>
+                        <strong>From:</strong> {ride.pickup_address} {/* Updated field name */}
+                      </p>
+                      <p>
+                        <strong>To:</strong> {ride.destination_address} {/* Updated field name */}
+                      </p>
+                      <p>
+                        <strong>Price:</strong> ${ride.price}
+                      </p>
+                      <p>
+                        <strong>Status:</strong>{" "}
+                        <span className={`status-badge ${ride.status}`}>
+                          {ride.status}
+                        </span>
+                      </p>
+                      <p>
+                        <strong>Date:</strong>{" "}
+                        {new Date(ride.created_at).toLocaleString()} {/* Updated field name */}
+                      </p>
+                    </div>
                   </div>
-                </div>
-              ))}
+                ))}
             </div>
           ) : (
             <p className="no-history">You haven't taken any rides yet.</p>

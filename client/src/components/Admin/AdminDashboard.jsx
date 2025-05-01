@@ -11,13 +11,11 @@ const AdminDashboard = ({ onLogout }) => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [driversRes, usersRes, ridesRes] = await Promise.all([
-          axios.get("http://localhost:3000/api/drivers"),
-          axios.get("http://localhost:3000/api/users"),
-          axios.get("http://localhost:3000/api/rides"),
+        const [driversRes, ridesRes] = await Promise.all([
+          axios.get("http://localhost:5000/api/drivers"),
+          axios.get("http://localhost:5000/api/rides"),
         ]);
         setDrivers(driversRes.data);
-        setUsers(usersRes.data);
         setRides(ridesRes.data);
       } catch (error) {
         console.error("Error fetching admin data:", error);
@@ -36,29 +34,26 @@ const AdminDashboard = ({ onLogout }) => {
               <table className="admin-table">
                 <thead>
                   <tr>
-                    <th>ID</th>
+                    {/* <th>ID</th> */}
                     <th>Name</th>
-                    <th>Vehicle</th>
+                    <th>Vehicle Model</th>
+                    <th>Vehicle Color</th>
                     <th>Rating</th>
-                    <th>Rides</th>
+                    <th>Vehicle No.</th>
                     <th>Status</th>
-                    <th>Actions</th>
                   </tr>
                 </thead>
                 <tbody>
                   {drivers.map((driver) => (
-                    <tr key={driver.id}>
-                      <td>{driver.id}</td>
+                    <tr key={driver.driver_id}>
+                      {/* <td>{driver.driver_id}</td> */}
                       <td>{driver.name}</td>
-                      <td>{driver.vehicle}</td>
+                      <td>{driver.vehicleModel}</td>
+                      <td>{driver.vehicleColor}</td>
                       <td>{driver.rating}</td>
-                      <td>{driver.rides}</td>
+                      <td>{driver.licensePlate}</td>
                       <td>
-                        <span className={`status-badge ${driver.status}`}>{driver.status}</span>
-                      </td>
-                      <td>
-                        <button className="btn-small btn-primary">Edit</button>
-                        <button className="btn-small btn-danger">Deactivate</button>
+                        <span className={`status-badge active`}>active</span>
                       </td>
                     </tr>
                   ))}
@@ -67,39 +62,39 @@ const AdminDashboard = ({ onLogout }) => {
             </div>
           </div>
         );
-      case "users":
-        return (
-          <div className="admin-tab-content">
-            <h2>Manage Users</h2>
-            <div className="admin-table-container">
-              <table className="admin-table">
-                <thead>
-                  <tr>
-                    <th>ID</th>
-                    <th>Name</th>
-                    <th>Total Rides</th>
-                    <th>Total Spent</th>
-                    <th>Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {users.map((user) => (
-                    <tr key={user.id}>
-                      <td>{user.id}</td>
-                      <td>{user.name}</td>
-                      <td>{user.rides}</td>
-                      <td>${user.totalSpent}</td>
-                      <td>
-                        <button className="btn-small btn-primary">View Details</button>
-                        <button className="btn-small btn-danger">Block</button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        );
+      // case "users":
+      // return (
+      //   <div className="admin-tab-content">
+      //     <h2>Manage Users</h2>
+      //     <div className="admin-table-container">
+      //       <table className="admin-table">
+      //         <thead>
+      //           <tr>
+      //             <th>ID</th>
+      //             <th>Name</th>
+      //             <th>Total Rides</th>
+      //             <th>Total Spent</th>
+      //             <th>Actions</th>
+      //           </tr>
+      //         </thead>
+      //         <tbody>
+      //           {users.map((user) => (
+      //             <tr key={user.id}>
+      //               <td>{user.id}</td>
+      //               <td>{user.name}</td>
+      //               <td>{user.rides}</td>
+      //               <td>${user.totalSpent}</td>
+      //               <td>
+      //                 <button className="btn-small btn-primary">View Details</button>
+      //                 <button className="btn-small btn-danger">Block</button>
+      //               </td>
+      //             </tr>
+      //           ))}
+      //         </tbody>
+      //       </table>
+      //     </div>
+      //   </div>
+      // );
       case "rides":
         return (
           <div className="admin-tab-content">
@@ -123,9 +118,9 @@ const AdminDashboard = ({ onLogout }) => {
                       <td>{ride.id}</td>
                       <td>{ride.user}</td>
                       <td>{ride.driver}</td>
-                      <td>{ride.pickup}</td>
-                      <td>{ride.destination}</td>
-                      <td>${ride.price}</td>
+                      <td>{ride.pickup_address}</td>
+                      <td>{ride.destination_address}</td>
+                      <td>₹{ride.price}</td>
                       <td>
                         <span className={`status-badge ${ride.status.replace(" ", "-")}`}>{ride.status}</span>
                       </td>
@@ -144,46 +139,31 @@ const AdminDashboard = ({ onLogout }) => {
               <div className="stat-card card">
                 <h3>Total Drivers</h3>
                 <p className="stat-value">{drivers.length}</p>
-                <p className="stat-label">Active: {drivers.filter((d) => d.status === "active").length}</p>
+                {/* <p className="stat-label">Active: {drivers.filter((d) => d.status === "active").length}</p> */}
+                <p className="stat-label">Active: {drivers.length}</p>
               </div>
               <div className="stat-card card">
                 <h3>Total Users</h3>
-                <p className="stat-value">{users.length}</p>
-                <p className="stat-label">Total rides: {users.reduce((sum, user) => sum + user.rides, 0)}</p>
+                <p className="stat-value">{[...new Set(rides.map((ride) => ride.user_id))].length}</p>
+                <p className="stat-label">Total rides: {rides.length}</p>
               </div>
               <div className="stat-card card">
                 <h3>Total Revenue</h3>
-                <p className="stat-value">${users.reduce((sum, user) => sum + user.totalSpent, 0)}</p>
+                <p className="stat-value">₹{rides.reduce((sum, ride) => sum + ride.price, 0)}</p>
                 <p className="stat-label">From {rides.length} rides</p>
               </div>
             </div>
             <div className="recent-activity">
               <h3>Recent Activity</h3>
               <div className="activity-list card">
-                <div className="activity-item">
-                  <span className="activity-time">10:30 AM</span>
-                  <span className="activity-text">
-                    New ride booked by <strong>Alex Johnson</strong>
-                  </span>
-                </div>
-                <div className="activity-item">
-                  <span className="activity-time">09:45 AM</span>
-                  <span className="activity-text">
-                    Driver <strong>Jane Smith</strong> completed a ride
-                  </span>
-                </div>
-                <div className="activity-item">
-                  <span className="activity-time">09:15 AM</span>
-                  <span className="activity-text">
-                    New user <strong>William Miller</strong> registered
-                  </span>
-                </div>
-                <div className="activity-item">
-                  <span className="activity-time">08:50 AM</span>
-                  <span className="activity-text">
-                    Driver <strong>Mike Johnson</strong> went online
-                  </span>
-                </div>
+                {rides.slice(-5).reverse().map((ride) => (
+                  <div className="activity-item" key={ride.id}>
+                    <span className="activity-time">{new Date(ride.created_at).toLocaleDateString()} {new Date(ride.created_at).toLocaleTimeString()}</span>
+                    <span className="activity-text">
+                      Ride <strong>{ride.id}</strong> is <strong>{ride.status}</strong> from <strong>{ride.pickup_address}</strong> to <strong>{ride.destination_address}</strong>
+                    </span>
+                  </div>
+                ))}
               </div>
             </div>
           </div>
@@ -215,12 +195,12 @@ const AdminDashboard = ({ onLogout }) => {
             >
               Drivers
             </button>
-            <button
+            {/* <button
               className={`admin-nav-item ${activeTab === "users" ? "active" : ""}`}
               onClick={() => setActiveTab("users")}
             >
               Users
-            </button>
+            </button> */}
             <button
               className={`admin-nav-item ${activeTab === "rides" ? "active" : ""}`}
               onClick={() => setActiveTab("rides")}

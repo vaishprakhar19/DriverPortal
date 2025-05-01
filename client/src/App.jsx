@@ -1,14 +1,16 @@
-import { useState } from "react"
-import { Routes, Route, Navigate, useNavigate } from "react-router-dom"
-import Login from "./components/Login/Login"
-import UserDashboard from "./components/User/UserDashboard"
-import DriverDashboard from "./components/Driver/DriverDashboard"
-import AdminDashboard from "./components/Admin/AdminDashboard"
-import PaymentPage from "./components/User/PaymentPage"
-import "./App.css"
+import { useContext } from "react";
+import { Routes, Route, Navigate, useNavigate } from "react-router-dom";
+import { AppContext } from "./AppContext";
+import Login from "./components/Login/Login";
+import UserDashboard from "./components/User/UserDashboard";
+import DriverDashboard from "./components/Driver/DriverDashboard";
+import AdminDashboard from "./components/Admin/AdminDashboard";
+import PaymentPage from "./components/User/PaymentPage";
+import DriverRegistration from "./components/Driver/DriverRegistration";
+import "./App.css";
 import { initializeApp } from "firebase/app";
 import { getAuth, signInWithPopup, GoogleAuthProvider } from "firebase/auth";
-import { getFirestore, doc, setDoc } from "firebase/firestore";
+import { getFirestore, doc, setDoc, getDoc } from "firebase/firestore";
 
 const firebaseConfig = {
   apiKey: "AIzaSyDtvg87YoIjsyYi-WrzAYaEzHlCWTiESts",
@@ -25,32 +27,46 @@ const provider = new GoogleAuthProvider();
 const db = getFirestore(app);
 
 function App() {
-  const [userType, setUserType] = useState(null);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const { userType, setUserType, isLoggedIn, setIsLoggedIn, setUserId, driverId, setDriverId, userId } = useContext(AppContext);
   const navigate = useNavigate();
 
-  const handleLogin = (type) => {
-    setUserType(type);
-    setIsLoggedIn(true);
-    navigate(`/${type}`);
-  };
-
-  const handleGoogleLogin = async (usertype) => {
-    try {
+  const handleRegisteration = async () => {
+    try{
+      setUserType("driver");
       const result = await signInWithPopup(auth, provider);
       const user = result.user;
+      setIsLoggedIn(true);
+      setUserId(user.uid);
+      navigate("/register-driver");
+    }
+    catch(error){
+      console.error("Google login failed:", error);
+    }
+  }
+  const handleGoogleLogin = async (usertype) => {
+    try {
+      setUserType(usertype);
+      const result = await signInWithPopup(auth, provider);
+      const user = result.user;
+      setUserId(user.uid);
       console.log("User logged in:", user);
       console.log("User type:", usertype);
 
-      // Add user to Firestore database
       const userRef = doc(db, "users", user.uid);
-      await setDoc(userRef, { usertype });
-      console.log("User added to Firestore with usertype:", usertype);
+      const userDoc = await getDoc(userRef);
 
-      // Update state and navigate
-      setUserType(usertype);
-      setIsLoggedIn(true);
-      navigate(`/${usertype}`);
+      if (usertype === "user") {
+        navigate("/user");
+      } else if (usertype === "admin") {
+        navigate("/admin");
+      } else if (usertype === "driver") {
+          const userData = { usertype };
+          userData.driverid = user.uid;
+          setDriverId(user.uid);
+          navigate(`/driver`);
+          await setDoc(userRef, userData);
+          console.log("User added to Firestore with usertype and driverid (if applicable):", userData);
+      }
     } catch (error) {
       console.error("Google login failed:", error);
     }
@@ -59,28 +75,37 @@ function App() {
   const handleLogout = () => {
     setUserType(null);
     setIsLoggedIn(false);
+    setUserId(null);
+    setDriverId(null);
+    navigate("/");
   };
 
   return (
     <div className="app-container">
       <Routes>
-        <Route path="/" element={!isLoggedIn ? <Login onLogin={handleGoogleLogin} /> : <Navigate to={`/${userType}`} />} />
+        <Route path="/" element={<Login onLogin={handleGoogleLogin} onRegister={handleRegisteration}/>} />        
         <Route
           path="/user"
           element={
-            isLoggedIn && userType === "user" ? <UserDashboard onLogout={handleLogout} /> : <Navigate to="/" />
+            <UserDashboard onLogout={handleLogout} /> 
+          }
+        />
+        <Route
+          path="/register-driver"
+          element={
+           <DriverRegistration />
           }
         />
         <Route
           path="/driver"
           element={
-            isLoggedIn && userType === "driver" ? <DriverDashboard onLogout={handleLogout} /> : <Navigate to="/" />
+           <DriverDashboard onLogout={handleLogout} /> 
           }
         />
         <Route
           path="/admin"
           element={
-            isLoggedIn && userType === "admin" ? <AdminDashboard onLogout={handleLogout} /> : <Navigate to="/" />
+            <AdminDashboard onLogout={handleLogout} /> 
           }
         />
         <Route path="/payment" element={<PaymentPage />} />
@@ -89,4 +114,4 @@ function App() {
   );
 }
 
-export default App
+export default App;

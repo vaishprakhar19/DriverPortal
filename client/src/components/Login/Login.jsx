@@ -1,6 +1,6 @@
 import "./Login.css";
 
-const Login = ({ onLogin }) => {
+const Login = ({ onLogin, onRegister }) => {
   return (
     <div className="login-container">
       <div className="login-card">
@@ -12,6 +12,7 @@ const Login = ({ onLogin }) => {
           <button className="login-btn user-btn" onClick={() => onLogin("user")}>Login as User</button>
           <button className="login-btn driver-btn" onClick={() => onLogin("driver")}>Login as Driver</button>
           <button className="login-btn admin-btn" onClick={() => onLogin("admin")}>Login as Admin</button>
+          <button className="login-btn register-btn" onClick={() => onRegister()}>Register as Driver</button>
         </div>
       </div>
     </div>
