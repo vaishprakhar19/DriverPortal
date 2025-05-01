@@ -1,0 +1,31 @@
+create database driverportal;
+use driverportal;
+
+CREATE TABLE Drivers (
+    driver_id VARCHAR(50) PRIMARY KEY,
+    driver_name VARCHAR(255) NOT NULL,
+    rating DECIMAL(2, 1) NOT NULL DEFAULT 0.0,
+    vehicleModel VARCHAR(255) NOT NULL,
+    vehicleColor VARCHAR(50),
+    licensePlate VARCHAR(20) UNIQUE NOT NULL,
+    serviceArea VARCHAR(255), -- Could be a city, region, or comma-separated list
+    createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+select * from drivers;
+
+
+
+CREATE TABLE rides (
+    id INT AUTO_INCREMENT PRIMARY KEY, -- Unique identifier for each ride
+    user_id VARCHAR(50) NOT NULL,              -- ID of the user requesting the ride
+    user_name VARCHAR(50) NOT NULL,
+    pickup_address VARCHAR(255) NOT NULL, -- Pickup location
+    destination_address VARCHAR(255) NOT NULL, -- Destination location
+    price DECIMAL(10, 2) NOT NULL,     -- Price of the ride
+    driver_id VARCHAR(50) NOT NULL,            -- ID of the assigned driver
+    driver_name VARCHAR(50) NOT NULL,
+    status VARCHAR(20), -- Ride status
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP -- Timestamp of ride creation
+);
+select * from rides;

@@ -6,7 +6,7 @@ import DriverList from "./DriverList";
 import "./UserDashboard.css";
 
 const UserDashboard = ({ onLogout }) => {
-  const { userId, user } = useContext(AppContext);
+  const { userId, user, activeRide, setActiveRide } = useContext(AppContext);
   const [pickup, setPickup] = useState("");
   const [destination, setDestination] = useState("");
   const [showDrivers, setShowDrivers] = useState(false);
@@ -17,7 +17,6 @@ const UserDashboard = ({ onLogout }) => {
   const [filteredRides, setFilteredRides] = useState([]); // New state for filtered rides
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [activeRide, setActiveRide] = useState(null);
   const [driverPrices, setDriverPrices] = useState({}); // State for driver prices
 
 
@@ -55,7 +54,6 @@ const UserDashboard = ({ onLogout }) => {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
       const data = await response.json();
-      console.log("Loaded rides data:", data); // Log the loaded rides data
       setRides(data);
     } catch (err) {
       console.error("Error loading rides:", err);
@@ -101,7 +99,6 @@ const UserDashboard = ({ onLogout }) => {
     setSelectedDriver(driver);
   };
 
-  console.log("New Ride:", selectedDriver);
   const confirmBooking = async () => {
     if (!selectedDriver || !userId) return;
     setLoading(true);
@@ -137,8 +134,8 @@ const UserDashboard = ({ onLogout }) => {
 
       setActiveRide(newRide);
       // setBookingConfirmed(true);
-      navigate("/payment", { state: { estimatedPrice } })
       setShowDrivers(false);
+      navigate("/payment", { state: { estimatedPrice } })
     } catch (err) {
       setError("Failed to book ride. Please try again.");
       console.error("Error booking ride:", err);
@@ -160,27 +157,27 @@ const UserDashboard = ({ onLogout }) => {
         {error && <div className="error-message">{error}</div>}
         {activeRide ? (
           <>
-          <button className="btn-danger">Book Another</button>
-          <div className="active-ride-section card">
-            <h2>Your Active Ride</h2>
-            <div className="ride-details">
-              <p>
-                <strong>Pickup:</strong> {activeRide.pickup}
-              </p>
-              <p>
-                <strong>Destination:</strong> {activeRide.destination}
-              </p>
-              <p>
-                <strong>Status:</strong> {activeRide.status}
-              </p>
-              <p>
-                <strong>Price:</strong> ${activeRide.price}
-              </p>
-              <p>
-                <strong>Driver:</strong> {activeRide.driverName}
-              </p>
+            <button className="btn-danger" onClick={() => setActiveRide(null)}>Book Another</button>
+            <div className="active-ride-section card">
+              <h2>Your Active Ride</h2>
+              <div className="ride-details">
+                <p>
+                  <strong>Pickup:</strong> {activeRide.pickup}
+                </p>
+                <p>
+                  <strong>Destination:</strong> {activeRide.destination}
+                </p>
+                <p>
+                  <strong>Status:</strong> {activeRide.status}
+                </p>
+                <p>
+                  <strong>Price:</strong> ${activeRide.price}
+                </p>
+                <p>
+                  <strong>Driver:</strong> {activeRide.driverName}
+                </p>
+              </div>
             </div>
-          </div>
           </>
         ) : (
           <>

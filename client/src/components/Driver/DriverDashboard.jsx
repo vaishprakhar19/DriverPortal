@@ -28,9 +28,7 @@ const DriverDashboard = ({ onLogout }) => {
         };
 
         fetchRides();
-    }, [driverId]);
-    console.log(rides);
-    console.log(userId);
+    }, [userId]);
 
     const acceptRide = async (ride) => {
         try {
@@ -78,13 +76,13 @@ const DriverDashboard = ({ onLogout }) => {
                             {activeRides.map((ride) => (
                                 <div key={ride.id} className="request-card card">
                                     <div className="request-details">
-                                        <h3>Request from {ride.user_id}</h3>
+                                        <h3>Request from {ride.user_name}</h3>
                                         <div className="location-details">
                                             <p>
-                                                <strong>Pickup:</strong> {ride.pickup}
+                                                <strong>Pickup:</strong> {ride.pickup_address}
                                             </p>
                                             <p>
-                                                <strong>Destination:</strong> {ride.destination}
+                                                <strong>Destination:</strong> {ride.destination_address}
                                             </p>
                                         </div>
                                         <p className="request-price">

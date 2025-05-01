@@ -8,6 +8,7 @@ export const AppProvider = ({ children }) => {
   const [userId, setUserId] = useState(null); // Added userId state
   const [driverId, setDriverId] = useState(null); // Added driverId state
   const [user, setUser] = useState(null);
+  const [activeRide, setActiveRide] = useState(null);
 
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
@@ -18,7 +19,7 @@ export const AppProvider = ({ children }) => {
   }, []);
 
   return (
-    <AppContext.Provider value={{ userType, setUserType, isLoggedIn, setIsLoggedIn, userId, setUserId, driverId, setDriverId, user, setUser }}>
+    <AppContext.Provider value={{ userType, setUserType, isLoggedIn, setIsLoggedIn, userId, setUserId, driverId, setDriverId, user, setUser, activeRide, setActiveRide }}>
       {children}
     </AppContext.Provider>
   );

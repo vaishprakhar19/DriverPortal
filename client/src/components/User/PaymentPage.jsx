@@ -1,10 +1,12 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom"; // Import useLocation
 import "./PaymentPage.css";
 
-const PaymentPage = ({estimatedPrice}) => {
+const PaymentPage = () => {
   const [isPaid, setIsPaid] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation(); // Use useLocation to get location
+  const { estimatedPrice } = location.state || {}; // Access state from location
 
   const handlePayment = () => {
     setIsPaid(true);
@@ -18,7 +20,7 @@ const PaymentPage = ({estimatedPrice}) => {
       {!isPaid ? (
         <div className="payment-card">
           <h2>Payment for Your Ride</h2>
-          <p>Price: {estimatedPrice}</p> 
+          <p>Price: ₹{estimatedPrice}</p> 
           <button className="btn-success" onClick={handlePayment}>
             Pay
           </button>
